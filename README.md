@@ -39,18 +39,68 @@ And it should have a body of `{ok: true}`
 import { test } from 'uvu'
 import * as assert from 'uvu/assert'
 import request from 'supertest'
-import app from '../server'
+import app from '../server.js'
+import mongoUnit from 'mongo-unit'
 
-test('POST /api/users', () => 
-  request(app)
+test('POST /api/users', async () => {
+  // setup
+  await mongoUnit.start().then(() => {
+    console.log('fake mongo is started: ', mongoUnit.getUrl())
+    process.env.MONGO_URL = mongoUnit.getUrl()
+  })
+
+  await request(app)
     .post('/api/users')
-    .send({_id: 'user-1', type: 'user', username: 'rakis'})
+    .send({ _id: 'user-1', type: 'user', username: 'rakis' })
     .expect('Content-Type', /json/)
     .expect(201)
-    .expect(({body}) => assert.is(body.ok, true))
+    .expect(({ body }) => assert.is(body.ok, true))
 
-)
+  // teardown
+  await mongoUnit.stop()
+})
 
 test.run()
 
 ```
+
+And here is a contrived example of an express server, obviously this will be different in production code. 
+
+```js
+import express from 'express'
+import { MongoClient } from 'mongodb'
+
+const app = express()
+
+
+app.post('/api/users', express.json(), async (req, res) => {
+  // example purposes only
+  const client = new MongoClient(process.env.MONGO_URL)
+  client.connect()
+  const users = client.db('todoapp').collection('users')
+
+  // 
+  const result = await users.insertOne(req.body)
+  res.status(201).send({ ok: result.acknowledged })
+
+  // example purposes only
+  client.close()
+})
+
+app.get('/', (req, res) => res.send({ hello: 'world' }))
+
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(3000)
+}
+
+export default app
+```
+
+
+## Summary
+
+Using tools that execute the test from the API level and provides mocks or in-memory alternatives to your services, you can create a clean environment for each test and isolate the focus of the test to your business logic code, which is the code that should change most often. 
+
+> One thing to be aware of, is the leakage of buisness logic into different layers, like making the presentation layer to smart by adding business logic, or the service layer too specific to your application. This will make it very difficult to test. By keeping your business logic, the code that makes your application special in the application layer, you can provide highly reliable testing with a small amount of effort.
+
+> BONUS: to further improve your quality, you can start to separate/extract side effects from your business logic and radically improve the quality of your code.
