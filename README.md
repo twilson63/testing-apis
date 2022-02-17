@@ -14,4 +14,43 @@ By thinking about your design and keeping your presentation layer focused on tak
 
 ## Integration Tests
 
-Integration tests take a workflow that may work through several units of code to achieve an outcome, the test verifies that outcome. The mos
+Integration tests take a workflow that may work through several units of code to achieve an outcome, the test verifies that outcome. With REST or Graphql API servers, it is good to use the http request as the entry point of your test and a mocking tool like `nock` or `mongo-mock` to address the application layer to service layer boundary, so that your tests can:
+
+1. Focus on testing your code
+2. Run in an automated environment like CI
+3. Be reliable and consistent
+
+### Example
+
+> In this example, we are using tools like uvu, supertest, mongo-mock and express, but do not recommend them for your use case, you may determine to use tools that work best for you. 
+
+In our example, we want to test a `POST /api/users` endpoint.
+
+```gerkin
+Given I have access to endpoint /api/users
+And the body of that post is `{_id: 'user-1', type: 'user', username: 'rakis' }`
+When I submit a POST request
+Then I should receive a response
+And it should be of content type application/json
+And it should have a body of `{ok: true}`
+```
+
+```js
+import { test } from 'uvu'
+import * as assert from 'uvu/assert'
+import request from 'supertest'
+import app from '../server'
+
+test('POST /api/users', () => 
+  request(app)
+    .post('/api/users')
+    .send({_id: 'user-1', type: 'user', username: 'rakis'})
+    .expect('Content-Type', /json/)
+    .expect(201)
+    .expect(({body}) => assert.is(body.ok, true))
+
+)
+
+test.run()
+
+```

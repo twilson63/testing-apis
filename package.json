@@ -1,16 +1,22 @@
 {
   "name": "testing-apis",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "repository": "https://github.com/twilson63/testing-apis.git",
   "author": "Tom Wilson <tom@hyper.io>",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.17.3"
+    "express": "^4.17.3",
+    "mongodb": "^4.3.1"
   },
   "devDependencies": {
     "mongo-mock": "^4.1.0",
+    "mongo-unit": "^3.0.0",
     "supertest": "^6.2.2",
     "uvu": "^0.5.3"
+  },
+  "scripts": {
+    "test": "NODE_ENV=test uvu tests"
   }
 }
