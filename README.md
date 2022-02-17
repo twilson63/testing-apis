@@ -14,4 +14,4 @@ By thinking about your design and keeping your presentation layer focused on tak
 
 ## Integration Tests
 
-Integration tests take a workflow that may work through several units of code to achieve an outcome, the test verifies that outcome. 
+Integration tests take a workflow that may work through several units of code to achieve an outcome, the test verifies that outcome. The mos
